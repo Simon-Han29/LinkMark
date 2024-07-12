@@ -2,6 +2,8 @@
 
 import {useState, useEffect, ChangeEvent} from "react"
 import {useRouter} from "next/navigation"
+import { useAuth } from "@/context/AuthContext"
+import Navbar from "@/components/Navbar"
 const Cookies = require("universal-cookie")
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
@@ -15,7 +17,8 @@ const Login = () => {
   const [password, setPassword] = useState<string>("")
   const cookies = new Cookies();
   const router = useRouter();
-  function login() {
+  const {login} = useAuth();
+  function handleLogin() {
     try {
       console.log(BASE_URL)
       fetch(`${BASE_URL}/login`, {
@@ -39,7 +42,8 @@ const Login = () => {
         })
         .then((data:LoginResponse) => {
           const token = data.token
-          cookies.set("_auth", token, {path:"/"})
+          // cookies.set("_auth", token, {path:"/"})
+          login(token)
           
         })
     } catch(err) {
@@ -55,10 +59,11 @@ const Login = () => {
   }
   return (
     <div>
+      <Navbar/>
       <h1>Login</h1>
       <input type="text" name="username" placeholder="Username" onChange={handleUsernamechange}/>
       <input type="password" name="password" placeholder="Password" onChange={handlePasswordChange}/>
-      <button onClick={login}>Login</button>
+      <button onClick={handleLogin}>Login</button>
     </div>
   )
 }
