@@ -10,6 +10,7 @@ const Navbar = () => {
 
   return (
     <div>
+      <Link href="/">Home</Link>
       <Link href="/signup">Signup</Link>
       {isAuthenticated ? (
         <Link href="/" onClick={handleLogout}>Logout</Link>

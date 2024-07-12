@@ -17,7 +17,14 @@ const Login = () => {
   const [password, setPassword] = useState<string>("")
   const cookies = new Cookies();
   const router = useRouter();
-  const {login} = useAuth();
+  const {login, isAuthenticated} = useAuth();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.push("/")
+    }
+  }, [])
+
   function handleLogin() {
     try {
       console.log(BASE_URL)
@@ -44,6 +51,7 @@ const Login = () => {
           const token = data.token
           // cookies.set("_auth", token, {path:"/"})
           login(token)
+          router.push("/")
           
         })
     } catch(err) {
