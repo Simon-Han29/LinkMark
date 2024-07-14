@@ -1,3 +1,4 @@
+const jwtDecode = require("jwt-decode")
 const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
@@ -13,6 +14,16 @@ const PORT = 8082;
 app.use(cors({origin: "http://localhost:3000", credentials: true}));
 app.use(cookieParser());
 app.use(express.json())
+
+const authenticateToken = (req, res, next) => {
+  const token = req.headers["authorization"]
+  if (!token) return res.status(403).send();
+
+  jwt.verify(token, jwtSecretKey, (err, data) => {
+    if (err) return res.status(403).send();
+    next();
+  })
+}
 
 app.post("/api/signup", async(req, res) => {
   const {username, password} = req.body;
@@ -70,8 +81,18 @@ app.post("/api/login", async (req, res) => {
     const matchResult = await bcrypt.compare(password, passwordRes.rows[0].password)
     console.log(matchResult)
     if (matchResult) {
+
+      const getLinksQuery = `
+        SELECT links from users
+        WHERE username=$1
+      `
+      let linksRes = await db.query(getLinksQuery, [username])
+      let links = linksRes.rows[0].links
+
+
       let data = {
-        username
+        "username": username,
+        "links": links,
       }
       const token = jwt.sign(data, jwtSecretKey)
       res.status(201).json({msg:"Login Successful", token})
@@ -80,6 +101,39 @@ app.post("/api/login", async (req, res) => {
     }
   }
 })
+
+app.post("/api/links", authenticateToken, async (req, res) => {
+  try {
+    const username = req.body.username;
+    const newLink = req.body.link;
+    const getLinkQuery = `
+      SELECT links FROM users
+      WHERE username=$1
+    `
+    let updatedLinks = await db.query(getLinkQuery, [username])
+    updatedLinks = updatedLinks.rows[0].links
+    let newLinkId = generateRandomId(10)
+    while (updatedLinks[newLinkId] != undefined) {
+      linkId = generateRandomId(10)
+    }
+    updatedLinks[newLinkId] = newLink
+
+    const updateLinksQuery = `
+      UPDATE users
+      SET links=$1
+      WHERE username=$2
+    `
+
+    await db.query(updateLinksQuery, [updatedLinks, username])
+
+    res.status(201).json(updatedLinks);
+  } catch(err) {
+    res.status(500).send(); 
+  }
+
+
+})
+
 
 function generateRandomId(length) {
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
