@@ -106,17 +106,21 @@ app.post("/api/links", authenticateToken, async (req, res) => {
   try {
     const username = req.body.username;
     const newLink = req.body.link;
-    const getLinkQuery = `
+    const newLinkName = req.body.linkName;
+    const getLinksQuery = `
       SELECT links FROM users
       WHERE username=$1
     `
-    let updatedLinks = await db.query(getLinkQuery, [username])
+    let updatedLinks = await db.query(getLinksQuery, [username])
     updatedLinks = updatedLinks.rows[0].links
     let newLinkId = generateRandomId(10)
     while (updatedLinks[newLinkId] != undefined) {
       linkId = generateRandomId(10)
     }
-    updatedLinks[newLinkId] = newLink
+    updatedLinks[newLinkId] = {
+      "link": newLink,
+      "linkname": newLinkName
+    }
 
     const updateLinksQuery = `
       UPDATE users
@@ -125,7 +129,6 @@ app.post("/api/links", authenticateToken, async (req, res) => {
     `
 
     await db.query(updateLinksQuery, [updatedLinks, username])
-
     res.status(201).json(updatedLinks);
   } catch(err) {
     res.status(500).send(); 
@@ -134,6 +137,29 @@ app.post("/api/links", authenticateToken, async (req, res) => {
 
 })
 
+app.delete("/api/links", authenticateToken, async(req, res) => {
+  try {
+    const username = req.body.username;
+    const linkId = req.body.linkId;
+    const getLinksQuery = `
+      SELECT links FROM users
+      WHERE username=$1
+    `
+    let updatedLinks = await db.query(getLinksQuery, [username])
+    updatedLinks = updatedLinks.rows[0].links
+    delete updatedLinks[linkId]
+    const updateLinksQuery = `
+      UPDATE users
+      SET links=$1
+      WHERE username=$2
+    `
+    await db.query(updateLinksQuery, [updatedLinks, username])
+    res.status(201).json(updatedLinks);
+
+  } catch(err) {
+    res.status(500).send();
+  }
+})
 
 function generateRandomId(length) {
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';

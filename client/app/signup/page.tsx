@@ -18,11 +18,11 @@ function Signup() {
   }, [])
 
   function handleUsernamechange(event:ChangeEvent<HTMLInputElement>) {
-    setUsername(event.target.value)
+    setUsername(event.target.value.trim())
   }
 
   function handlePasswordChange(event:ChangeEvent<HTMLInputElement>) {
-    setPassword(event.target.value)
+    setPassword(event.target.value.trim())
   }
 
   function signup() {

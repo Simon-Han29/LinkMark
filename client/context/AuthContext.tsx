@@ -14,7 +14,8 @@ interface AuthContextType {
     username: string
     login: (token: string) => void;
     logout: () => void;
-    addLink: (link:string) => void;
+    addLink: (link:string, linkName:string) => void;
+    deleteLink: (linkId:string) => void;
 }
 
 interface JWTType {
@@ -48,7 +49,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
     }, []);
 
-    const addLink = async (link: string) => {
+    const addLink = async (link: string, linkName: string) => {
         if (isAuthenticated) {
             fetch(`${BASE_URL}/links`, {
                 "method": "POST",
@@ -59,6 +60,33 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 "body": JSON.stringify({
                     "username": username,
                     "link": link,
+                    "linkName": linkName, 
+                })
+            })
+                .then((res) => {
+                    if (res.status === 201) {
+                        return res.json();
+                    } else {
+                        return null;
+                    }
+                })
+                .then((data) => {
+                    setLinks(data)
+                })
+        }
+    }
+
+    const deleteLink = async(linkId:string) => {
+        if (isAuthenticated) {
+            fetch(`${BASE_URL}/links`, {
+                "method": "DELETE",
+                "headers": {
+                    "content-type": "application/json",
+                    "Authorization": cookies.get("token")
+                },
+                "body": JSON.stringify({
+                    "username": username,
+                    "linkId":linkId
                 })
             })
                 .then((res) => {
@@ -90,7 +118,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ isAuthenticated, links, username, login, logout, addLink }}>
+        <AuthContext.Provider value={{ isAuthenticated, links, username, login, logout, addLink, deleteLink }}>
             {children}
         </AuthContext.Provider>
     );
