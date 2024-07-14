@@ -66,12 +66,25 @@ const Login = () => {
     setPassword(event.target.value.trim())
   }
   return (
-    <div>
+    <div className="h-screen text-white">
       <Navbar/>
-      <h1>Login</h1>
-      <input type="text" name="username" placeholder="Username" onChange={handleUsernamechange}/>
-      <input type="password" name="password" placeholder="Password" onChange={handlePasswordChange}/>
-      <button onClick={handleLogin}>Login</button>
+      <div className="flex items-center justify-center h-[calc(100vh-56px)]">
+        <div className="border border-black flex flex-col items-center h-[500px] w-[350px] bg-neutral-900 rounded-[15px] drop-shadow-2xl">
+          <div>
+            <h1 className="mt-20 mb-10">LinkMark</h1>
+          </div>
+          <div className="flex flex-col items-center">
+            <input type="text" name="username" placeholder="Username" onChange={handleUsernamechange} className="outline-none mb-5 h-10 rounded-[5px] border border-black p-5 text-black"/>
+            <input type="password" name="password" placeholder="Password" onChange={handlePasswordChange} className="outline-none mb-5 h-10 rounded-[5px] border border-black p-5 text-black"/>
+            <button onClick={handleLogin} className="bg-violet-600 hover:bg-violet-900 h-10 w-40 rounded-[5px] text-white">Login</button>
+          </div>
+          <div className="mt-10">
+            <p>{"Don't have an account yet? Sign up"}</p>
+          </div>
+          
+        </div>
+      </div>
+
     </div>
   )
 }

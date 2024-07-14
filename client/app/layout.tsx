@@ -16,7 +16,7 @@ export default function RootLayout({
 }>) {
   return (
     <AuthProvider>
-      <html lang="en">
+      <html lang="en" className="bg-neutral-950">
         <body className={inter.className}>
             {children}
         </body>
