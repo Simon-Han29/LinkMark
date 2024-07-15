@@ -4,6 +4,8 @@ import {useState, useEffect, ChangeEvent} from "react"
 import {useRouter} from "next/navigation"
 import { useAuth } from "@/context/AuthContext"
 import Navbar from "@/components/Navbar"
+import Image from "next/image"
+import Link from "next/link"
 const Cookies = require("universal-cookie")
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
@@ -70,8 +72,8 @@ const Login = () => {
       <Navbar/>
       <div className="flex items-center justify-center h-[calc(100vh-56px)]">
         <div className="border border-black flex flex-col items-center h-[500px] w-[350px] bg-neutral-900 rounded-[15px] drop-shadow-2xl">
-          <div>
-            <h1 className="mt-20 mb-10">LinkMark</h1>
+          <div className=" mt-20 mb-10">
+            <Image src="/default-monochrome.svg" alt="" width={200} height={50}/>
           </div>
           <div className="flex flex-col items-center">
             <input type="text" name="username" placeholder="Username" onChange={handleUsernamechange} className="outline-none mb-5 h-10 rounded-[5px] border border-black p-5 text-black"/>
@@ -79,12 +81,10 @@ const Login = () => {
             <button onClick={handleLogin} className="bg-violet-600 hover:bg-violet-900 h-10 w-40 rounded-[5px] text-white">Login</button>
           </div>
           <div className="mt-10">
-            <p>{"Don't have an account yet? Sign up"}</p>
+            <Link href="/signup">{"Don't have an account yet? Sign up"}</Link>
           </div>
-          
         </div>
       </div>
-
     </div>
   )
 }
