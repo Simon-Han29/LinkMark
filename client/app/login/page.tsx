@@ -51,6 +51,7 @@ const Login = () => {
         })
         .then((data:LoginResponse) => {
           const token = data.token
+          // cookies.set("_auth", token, {path:"/"})
           login(token)
           router.push("/")
           
