@@ -8,13 +8,15 @@ import LinkBox from "@/components/LinkBox"
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
 export default function Home() {
-  const { folders, username, isAuthenticated, addLink, deleteLink, initFolders } = useAuth();
-  const [newLink, setNewLink] = useState<string>('');
-  const [newLinkName, setNewLinkName] = useState<string>('');
-  const [isMenuShowing, setIsMenuShowing] = useState<boolean>(false);
-  const [selectedFolder, setSelectedFolder] = useState<string>('');
-  const [selectedFolderId, setSelectedFolderId] = useState<string>('');
+  const { folders, username, isAuthenticated, addLink, deleteLink, initFolders, createFolder } = useAuth();
+  const [newLink, setNewLink] = useState<string>("");
+  const [newLinkName, setNewLinkName] = useState<string>("");
+  const [isLinkMenuShowing, setIsLinkMenuShowing] = useState<boolean>(false);
+  const [selectedFolder, setSelectedFolder] = useState<string>("");
+  const [selectedFolderId, setSelectedFolderId] = useState<string>("");
   const [displayedLinks, setDisplayedLinks] = useState<Object>({});
+  const [newFolderName, setNewFolderName] = useState<string>("");
+  const [isFolderMenuShowing, setIsFolderMenuShowing] = useState<boolean>(false)
 
   const handleNewLinkChange = (event: ChangeEvent<HTMLInputElement>) => {
     setNewLink(event.target.value.trim());
@@ -30,9 +32,13 @@ export default function Home() {
     setDisplayedLinks(links);
   };
 
-  const toggleMenu = () => {
-    setIsMenuShowing(!isMenuShowing);
+  const toggleLinkMenu = () => {
+    setIsLinkMenuShowing(!isLinkMenuShowing);
   };
+
+  const toggleFolderMenu = () => {
+    setIsFolderMenuShowing(!isFolderMenuShowing)
+  }
 
   const handleAddLink = async () => {
     let updatedFolder:Object = await addLink(newLink, newLinkName, selectedFolderId);
@@ -45,12 +51,22 @@ export default function Home() {
     setDisplayedLinks(updatedFolder)
   }
 
+  const handleNewFolderNameChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setNewFolderName(event.target.value.trim());
+  };
+
+
+
+  const handleCreateNewFolder = async() => {
+    createFolder(newFolderName)
+  }
+
   return (
     <div className="text-white">
       <Navbar />
       {isAuthenticated ? (
         <div>
-          <div className={isMenuShowing ? 'opacity-50' : ''}>
+          <div className={isLinkMenuShowing || isFolderMenuShowing ? 'opacity-50' : ''}>
             <div className="flex justify-center p-10">
               <Image src="/default-monochrome.svg" alt="" width={400} height={50} />
             </div>
@@ -67,7 +83,7 @@ export default function Home() {
                     <h1>Folders</h1>
                   </div>
                   <div className="justify-end w-[20%]">
-                    <button className="bg-violet-600 h-10 w-10 rounded-[5px]">+</button>
+                    <button onClick={toggleFolderMenu} className="bg-violet-600 h-10 w-10 rounded-[5px]">+</button>
                   </div>
                 </div>
                 
@@ -84,10 +100,10 @@ export default function Home() {
                     <h1>{`/${selectedFolder}`}</h1>
                   </div>
                   <div className="flex justify-end w-[20%]">
-                    <button onClick={toggleMenu} className="bg-violet-600 h-10 w-40 rounded-[5px]">Add Link</button>
+                    <button onClick={toggleLinkMenu} className="bg-violet-600 h-10 w-40 rounded-[5px]">Add Link</button>
                   </div>
                 </div>
-                <div className="flex mx-5">
+                <div className={`flex mx-5 ${selectedFolder === "" ? "hidden":""}`}>
                   <div className="w-[40%]">
                     <p>Link Name</p>
                   </div>
@@ -107,7 +123,7 @@ export default function Home() {
               </div>
             </div>
           </div>
-          {isMenuShowing ? (
+          {isLinkMenuShowing ? (
             <div className="bg-neutral-800 absolute left-[50%] top-[50%] h-[300px] w-[500px] translate-x-[-50%] translate-y-[-50%] flex justify-center items-center">
               <div className="flex flex-col h-56 w-96 justify-center items-center">
                 <input
@@ -123,6 +139,23 @@ export default function Home() {
                   className="text-black rounded-[5px] px-5 mb-5 h-10"
                 />
                 <button onClick={handleAddLink} className="bg-violet-900 h-10 w-28 rounded-[5px]">
+                  Add
+                </button>
+              </div>
+            </div>
+          ) : (
+            <></>
+          )}
+          {isFolderMenuShowing ? (
+            <div className="bg-neutral-800 absolute left-[50%] top-[50%] h-[300px] w-[500px] translate-x-[-50%] translate-y-[-50%] flex justify-center items-center">
+              <div className="flex flex-col h-56 w-96 justify-center items-center">
+                <input
+                  type="text"
+                  placeholder="Folder Name"
+                  onChange={handleNewFolderNameChange}
+                  className="text-black rounded-[5px] px-5 mb-5 h-10"
+                />
+                <button onClick={handleCreateNewFolder} className="bg-violet-900 h-10 w-28 rounded-[5px]">
                   Add
                 </button>
               </div>

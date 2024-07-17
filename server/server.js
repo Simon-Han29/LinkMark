@@ -295,6 +295,44 @@ app.post("/api/refresh", authenticateToken, async(req, res) => {
   }
 })
 
+app.post("/api/folders", authenticateToken, async (req, res) => {
+  try {
+    const uid=req.body.uid
+    const folderName=req.body.folderName
+
+    const getFoldersQuery = `
+      SELECT * FROM folders
+      WHERE fid=$1
+    `
+
+    
+    let newFolderId = generateRandomId(10)
+    let matchingFoldersRes = await db.query(getFoldersQuery, [newFolderId])
+    while (matchingFoldersRes.rowCount != 0) {
+      newFolderId = generateRandomId(10)
+      matchingFoldersRes = await db.query(getFoldersQuery, [newFolderId])
+    }
+
+    const createFolderQuery = `
+      INSERT INTO folders (fid, uid, parentid, name, links)
+      VALUES ($1, $2, $3, $4, $5)
+    `
+
+    await db.query(createFolderQuery, [newFolderId, uid, null, folderName, "{}"])
+
+    const getUserFoldersQuery = `
+      SELECT * FROM folders
+      WHERE uid=$1
+    `
+    const folderRes = await db.query(getUserFoldersQuery, [uid])
+    const folders = folderRes.rows;
+    res.status(201).json({folders: folders})
+
+  }catch(err) {
+
+  }
+})
+
 function generateRandomId(length) {
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   let result = '';

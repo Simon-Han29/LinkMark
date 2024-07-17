@@ -17,6 +17,7 @@ interface AuthContextType {
   addLink: (link: string, linkName: string, fid: string) => Object;
   deleteLink: (fid:string, linkId: string) => Object;
   initFolders: (folders: FolderType[]) => void;
+  createFolder: (folderName:string) => void;
 }
 
 interface LinkType {
@@ -225,8 +226,37 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setFolders(folders);
   };
 
+  const createFolder = async (folderName:string) => {
+    try {
+      if (isAuthenticated) {
+        fetch(`${BASE_URL}/folders`, {
+          "method": "POST",
+          "headers": {
+            "authorization": cookies.get("token"),
+            "content-type": "application/json"
+          },
+          "body": JSON.stringify({
+            "folderName": folderName,
+            "uid": uid
+          })
+        })
+        .then((res) => {
+          if (res.status === 201) {
+            return res.json()
+          }
+        })
+        .then((data) => {
+          setFolders(data.folders)
+          return data.folders;
+        })
+      }
+    } catch(err) {
+
+    }
+  }
+
   return (
-    <AuthContext.Provider value={{ isAuthenticated, folders, username, uid, login, logout, addLink, deleteLink, initFolders }}>
+    <AuthContext.Provider value={{ isAuthenticated, folders, username, uid, login, logout, addLink, deleteLink, initFolders, createFolder }}>
       {children}
     </AuthContext.Provider>
   );
