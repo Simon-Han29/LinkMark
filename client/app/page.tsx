@@ -7,7 +7,7 @@ import Image from 'next/image';
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
 export default function Home() {
-  const { folders, username, isAuthenticated, addLink, deleteLink } = useAuth();
+  const { folders, username, isAuthenticated, addLink, deleteLink, initFolders } = useAuth();
   const [newLink, setNewLink] = useState<string>('');
   const [newLinkName, setNewLinkName] = useState<string>('');
   const [isMenuShowing, setIsMenuShowing] = useState<boolean>(false);
@@ -34,7 +34,7 @@ export default function Home() {
   };
 
   const handleAddLink = async () => {
-    let updatedFolder = await addLink(newLink, newLinkName, selectedFolderId);
+    let updatedFolder:Object = await addLink(newLink, newLinkName, selectedFolderId);
     // Update displayedLinks after adding a new link
     setDisplayedLinks(updatedFolder)
   };

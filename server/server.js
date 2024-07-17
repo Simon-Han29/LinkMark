@@ -1,4 +1,4 @@
-const jwtDecode = require("jwt-decode")
+const {jwtDecode} = require("jwt-decode")
 const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
@@ -25,6 +25,21 @@ const authenticateToken = (req, res, next) => {
   })
 }
 
+
+app.get("/api/folders", authenticateToken, async(req, res) => {
+  const token = req.headers["authorization"]
+  const decoded = jwtDecode(token)
+  const uid = decoded.uid;
+  
+  const getFoldersQuery = `
+    SELECT * FROM folders
+    WHERE uid=$1
+  `
+  const folderRes = await db.query(getFoldersQuery, [uid])
+
+  const folders = folderRes.rows
+  res.status(200).json(folders)
+})
 
 app.post("/api/signup", async(req, res) => {
   const {username, password} = req.body;
@@ -125,14 +140,12 @@ app.post("/api/login", async (req, res) => {
       let data = {
         "username": username,
         "uid": uid,
-        "folders": folders
       }
 
       console.log(data)
 
       const token = jwt.sign(data, jwtSecretKey)
-      res.status(201).json({msg:"Login Successful", token})
-      // res.status(201).json({msg: "Test success"})
+      res.status(201).json({msg:"Login Successful", "token": token, "folders": folders})
     } else {
       res.status(409).json({msg: "Incorrect Password"})
     }

@@ -11,7 +11,21 @@ const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
 interface LoginResponse {
   "msg": string,
-  "token":string
+  "token":string,
+  "folders": FolderType[]
+}
+
+interface FolderType {
+  fid: string,
+  uid: string,
+  parentid: string | null | undefined,
+  name: string,
+  links: LinkType
+}
+
+interface LinkType {
+  name: string,
+  link: string
 }
 
 const Login = () => {
@@ -19,7 +33,7 @@ const Login = () => {
   const [password, setPassword] = useState<string>("")
   const cookies = new Cookies();
   const router = useRouter();
-  const {login, isAuthenticated} = useAuth();
+  const {login, isAuthenticated, initFolders} = useAuth();
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -51,7 +65,10 @@ const Login = () => {
         })
         .then((data:LoginResponse) => {
           const token = data.token
+          const folders = data.folders
           login(token)
+          initFolders(folders)
+          
           router.push("/")
           
         })
