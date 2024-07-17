@@ -3,6 +3,7 @@ import { useState, useEffect, ChangeEvent } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import Navbar from '@/components/Navbar';
 import Image from 'next/image';
+import LinkBox from "@/components/LinkBox"
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
@@ -61,31 +62,48 @@ export default function Home() {
             </div>
             <div className="flex">
               <div className="bg-neutral-900 ml-5 p-10 rounded-[20px] w-[30%]">
-                <p>Folders</p>
+                <div className="mb-5 flex">
+                  <div className="flex items-center w-[80%]">
+                    <h1>Folders</h1>
+                  </div>
+                  <div className="justify-end w-[20%]">
+                    <button className="bg-violet-600 h-10 w-10 rounded-[5px]">+</button>
+                  </div>
+                </div>
+                
                 {folders.map((folder) => (
-                  <div key={folder.fid}>
+                  <div key={folder.fid} className={`flex mx-5 rounded-[10px] p-2 ${selectedFolderId===folder.fid ? "bg-neutral-700":""}`}>
+                    <Image src="/folder.png" alt="" width={20} height={20} className="mr-2"/>
                     <p onClick={() => selectFolder(folder.name, folder.fid, folder.links)}>{folder.name}</p>
                   </div>
                 ))}
               </div>
-              <div className="bg-neutral-900 mx-5 p-10 rounded-[20px] w-[70%] flex">
-                <div className="w-[80%] flex items-center">
-                  <p>{`/${selectedFolder}`}</p>
+              <div className="bg-neutral-900 mx-5 p-10 rounded-[20px] w-[70%]">
+                <div className="flex mb-5">
+                  <div className="w-[80%] flex items-center">
+                    <h1>{`/${selectedFolder}`}</h1>
+                  </div>
+                  <div className="flex justify-end w-[20%]">
+                    <button onClick={toggleMenu} className="bg-violet-600 h-10 w-40 rounded-[5px]">Add Link</button>
+                  </div>
                 </div>
-                <div className="flex justify-end w-[20%]">
-                  <button onClick={toggleMenu} className="bg-violet-600 h-10 w-40 rounded-[5px]">
-                    + New Link
-                  </button>
-                  <div>
+                <div className="flex mx-5">
+                  <div className="w-[40%]">
+                    <p>Link Name</p>
+                  </div>
+                  <div className="w-[60%]">
+                    <p>URL</p>
+                  </div>
+                </div>
+                <div>
                     {displayedLinks &&
                       Object.values(displayedLinks).map((data) => (
-                        <div key={data.linkId}>
-                          <p>{data.link}</p>
+                        <div key={data.linkId} className="bg-neutral-800 flex h-10 items-center rounded-[10px] my-2">
+                          <LinkBox link={data.link} linkName={data.linkname} linkId={data.linkId}/>
                           <button onClick={()=>{handleDeleteLink(data.linkId)}}>Delete</button>
                         </div>
                       ))}
                   </div>
-                </div>
               </div>
             </div>
           </div>
