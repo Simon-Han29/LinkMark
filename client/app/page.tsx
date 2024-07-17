@@ -39,6 +39,11 @@ export default function Home() {
     setDisplayedLinks(updatedFolder)
   };
 
+  const handleDeleteLink = async (linkId:string) => {
+    let updatedFolder:Object = await deleteLink(selectedFolderId, linkId)
+    setDisplayedLinks(updatedFolder)
+  }
+
   return (
     <div className="text-white">
       <Navbar />
@@ -76,6 +81,7 @@ export default function Home() {
                       Object.values(displayedLinks).map((data) => (
                         <div key={data.linkId}>
                           <p>{data.link}</p>
+                          <button onClick={()=>{handleDeleteLink(data.linkId)}}>Delete</button>
                         </div>
                       ))}
                   </div>

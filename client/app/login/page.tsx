@@ -20,7 +20,7 @@ interface FolderType {
   uid: string,
   parentid: string | null | undefined,
   name: string,
-  links: LinkType
+  links: LinkType[]
 }
 
 interface LinkType {
@@ -65,7 +65,7 @@ const Login = () => {
         })
         .then((data:LoginResponse) => {
           const token = data.token
-          const folders = data.folders
+          const folders:FolderType[] = data.folders
           login(token)
           initFolders(folders)
           

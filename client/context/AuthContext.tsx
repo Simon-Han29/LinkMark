@@ -15,7 +15,7 @@ interface AuthContextType {
   login: (token: string) => void;
   logout: () => void;
   addLink: (link: string, linkName: string, fid: string) => Object;
-  deleteLink: (linkId: string) => void;
+  deleteLink: (fid:string, linkId: string) => Object;
   initFolders: (folders: FolderType[]) => void;
 }
 
@@ -151,7 +151,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const deleteLink = async (linkId: string) => {
+  const deleteLink = async (fid: string, linkId: string) => {
     if (isAuthenticated) {
       try {
         const token = cookies.get('token');
@@ -162,17 +162,26 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             'Authorization': token,
           },
           body: JSON.stringify({
-            username: username,
-            linkId: linkId,
+            "uid":uid,
+            "linkId": linkId,
+            "fid":fid
           }),
         });
 
         if (!response.ok) {
           throw new Error('Failed to delete link');
         }
-
         const data = await response.json();
         setFolders(data.folders);
+        console.log(data.folders);
+
+        let returned = {};
+        for (let i = 0; i < data.folders.length; i++) {
+          if (data.folders[i].fid === fid) {
+            returned = data.folders[i].links;
+          }
+        }
+        return returned;
 
       } catch (error) {
         console.error('Error deleting link:', error);

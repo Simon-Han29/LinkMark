@@ -230,22 +230,37 @@ app.post("/api/links", authenticateToken, async (req, res) => {
 
 app.delete("/api/links", authenticateToken, async(req, res) => {
   try {
-    const username = req.body.username;
     const linkId = req.body.linkId;
-    const getLinksQuery = `
-      SELECT links FROM users
-      WHERE username=$1
+    const fid = req.body.fid;
+    const uid=req.body.uid
+    const getFolderQuery = `
+      SELECT links from folders
+      WHERE fid=$1
     `
-    let updatedLinks = await db.query(getLinksQuery, [username])
-    updatedLinks = updatedLinks.rows[0].links
-    delete updatedLinks[linkId]
-    const updateLinksQuery = `
-      UPDATE users
+    let updatedFolder = await db.query(getFolderQuery, [fid])
+    updatedFolder = updatedFolder.rows[0].links
+    delete updatedFolder[linkId]
+
+    console.log("updated folder:")
+    console.log(updatedFolder)
+    const updateFolderQuery = `
+      UPDATE folders
       SET links=$1
-      WHERE username=$2
+      WHERE fid=$2
     `
-    await db.query(updateLinksQuery, [updatedLinks, username])
-    res.status(201).json(updatedLinks);
+
+    await db.query(updateFolderQuery, [updatedFolder, fid])
+
+    const userFolders = `
+      SELECT * FROM folders
+      WHERE uid=$1
+    `
+    console.log("uid:" + uid)
+
+    const userFoldersRes = await db.query(userFolders, [uid])
+    console.log("user folder res:")
+    console.log(userFoldersRes)
+    res.status(200).json({"folders": userFoldersRes.rows});
 
   } catch(err) {
     res.status(500).send();
