@@ -30,14 +30,7 @@ app.get("/api/folders", authenticateToken, async(req, res) => {
   const token = req.headers["authorization"]
   const decoded = jwtDecode(token)
   const uid = decoded.uid;
-  
-  const getFoldersQuery = `
-    SELECT * FROM folders
-    WHERE uid=$1
-  `
-  const folderRes = await db.query(getFoldersQuery, [uid])
-
-  const folders = folderRes.rows
+  const folders = await getFoldersByUid(uid)
   res.status(200).json(folders)
 })
 
@@ -53,8 +46,6 @@ app.post("/api/signup", async(req, res) => {
       res.status(409).json({msg:"Username taken"})
     } else {
       const uid = generateRandomId(10)
-      //ensure uid does not exist
-  
       const checkExistingUidQuery = `
         SELECT * from users
         WHERE uid=$1
@@ -66,9 +57,6 @@ app.post("/api/signup", async(req, res) => {
       }
   
       const hashedPassword = await bcrypt.hash(password, 10)
-
-      //create default folder
-      //check give an id to the folder, make sure it does not exist
       const defaultFid = generateRandomId(10);
 
       const findFolderQuery = `
@@ -80,7 +68,6 @@ app.post("/api/signup", async(req, res) => {
         defaultFid = generateRandomId(10)
         folderFound = await db.query(findFolderQuery, [defaultFid])
       }
-
 
       const registerUserQuery = `
         INSERT INTO users (uid, username, password)
@@ -104,45 +91,25 @@ app.post("/api/signup", async(req, res) => {
 
 app.post("/api/login", async (req, res) => {
   const {username, password} = req.body;
-  console.log(jwtSecretKey)
   const findUserQuery = `
     SELECT password from users
     WHERE username=$1
   `
   let passwordRes = await db.query(findUserQuery, [username])
-  //if user does not exist
+
   if (passwordRes.rowCount === 0) {
     res.status(404).send({msg:"Username does not exist"})
   } else {
-    console.log(password)
     const matchResult = await bcrypt.compare(password, passwordRes.rows[0].password)
-    console.log(matchResult)
     if (matchResult) {
 
-      const getUID = `
-        SELECT uid from users
-        WHERE username=$1
-      `
-
-      const uidRes = await db.query(getUID, [username])
-      const uid = uidRes.rows[0].uid;
-
-      const getFoldersQuery = `
-        SELECT * FROM folders
-        WHERE uid=$1
-      `
-
-      const folderRes = await db.query(getFoldersQuery, [uid])
-      console.log("Folder res")
-      console.log(folderRes);
-      const folders = folderRes.rows;
+      const uid = await getUidFromUsername(username)
+      const folders = await getFoldersByUid(uid);
 
       let data = {
         "username": username,
         "uid": uid,
       }
-
-      console.log(data)
 
       const token = jwt.sign(data, jwtSecretKey)
       res.status(201).json({msg:"Login Successful", "token": token, "folders": folders})
@@ -155,18 +122,8 @@ app.post("/api/login", async (req, res) => {
 app.get("/folders", authenticateToken,  async(req, res) => {
   try {
     const username = req.params.username;
-    const getUID = `
-      SELECT uid from users
-      WHERE username=$1
-    `
-    const uidRes = await db.query(getUID, [username])
-    const uid = uidRes.rows[0].uid;
-    const getFoldersQuery = `
-      SELECT * FROM folders
-      WHERE uid=$1
-    `
-    const folderRes = await db.query(getFoldersQuery, [uid])
-    const folders = folderRes.rows;
+    const uid = await getUidFromUsername(username);
+    const folders = await getFoldersByUid(uid);
     res.status(201).json({"folders":folders})
   } catch(err) {
     res.status(500).send();
@@ -180,35 +137,26 @@ app.post("/api/links", authenticateToken, async (req, res) => {
     const newLinkName = req.body.linkName;
     const fid = req.body.fid
     const uid = req.body.uid
-    console.log("Updating folder with id: " + fid)
     const getFolderQuery = `
       SELECT links from folders
       WHERE fid=$1
     `
 
     const getFolderRes = await db.query(getFolderQuery, [fid])
-    let updatedFolder = getFolderRes.rows[0].links
+    let updatedLinks = getFolderRes.rows[0].links
 
     let newLinkId = generateRandomId(10)
-    while (updatedFolder[newLinkId] != undefined) {
+    while (updatedLinks[newLinkId] != undefined) {
       newLinkId = generateRandomId(10)
     }
     
-    updatedFolder[newLinkId] = {
+    updatedLinks[newLinkId] = {
       "link": newLink,
       "linkname": newLinkName,
       "linkId": newLinkId
     }
-    
-    console.log("Updated folder: ")
-    console.log(updatedFolder) 
-    const updateFolderQuery = `
-      UPDATE folders
-      SET links=$1
-      WHERE fid=$2
-    `
 
-    await db.query(updateFolderQuery, [updatedFolder, fid])
+    await updateFolderLinks(fid, updatedLinks)
 
     const userFolders = `
       SELECT * FROM folders
@@ -228,7 +176,6 @@ app.post("/api/links", authenticateToken, async (req, res) => {
 
 })
 
-app.delete("/api/links", authenticateToken, async(req, res) => {
   try {
     const linkId = req.body.linkId;
     const fid = req.body.fid;
@@ -250,22 +197,24 @@ app.delete("/api/links", authenticateToken, async(req, res) => {
     `
 
     await db.query(updateFolderQuery, [updatedFolder, fid])
+    delete updatedLinks[linkId];
 
     const userFolders = `
       SELECT * FROM folders
       WHERE uid=$1
     `
     console.log("uid:" + uid)
+    await updateFolderLinks(fid, linksJson);
 
-    const userFoldersRes = await db.query(userFolders, [uid])
-    console.log("user folder res:")
-    console.log(userFoldersRes)
-    res.status(200).json({"folders": userFoldersRes.rows});
 
-  } catch(err) {
+    let folders = await getFoldersByUid(uid);
+    res.status(200).json({ "folders": folders });
+
+  } catch (err) {
+    console.error("Error:", err);
     res.status(500).send();
   }
-})
+});
 
 app.post("/api/refresh", authenticateToken, async(req, res) => {
   try {
@@ -305,7 +254,6 @@ app.post("/api/folders", authenticateToken, async (req, res) => {
       WHERE fid=$1
     `
 
-    
     let newFolderId = generateRandomId(10)
     let matchingFoldersRes = await db.query(getFoldersQuery, [newFolderId])
     while (matchingFoldersRes.rowCount != 0) {
@@ -332,6 +280,50 @@ app.post("/api/folders", authenticateToken, async (req, res) => {
 
   }
 })
+
+async function getUidFromUsername(username) {
+  const getUID = `
+    SELECT uid from users
+    WHERE username=$1
+  `
+
+  const uidRes = await db.query(getUID, [username])
+  return uidRes.rows[0].uid;
+}
+
+async function getFoldersByUid(uid) {
+  const getFoldersQuery = `
+    SELECT * FROM folders
+    WHERE uid=$1
+  `
+
+  const folderRes = await db.query(getFoldersQuery, [uid])
+  return folderRes.rows;
+}
+
+async function updateFolderLinks(fid, links) {
+  const updateFolderQuery = `
+    UPDATE folders
+    SET links = $1
+    WHERE fid = $2
+  `;
+
+  // Log the query and the parameters
+  console.log("Executing query:", updateFolderQuery);
+  console.log("With values:", links, fid);
+
+  await db.query(updateFolderQuery, [links, fid]);
+}
+
+async function getUidFromUsername(username) {
+  const getUID = `
+    SELECT uid from users
+    WHERE username=$1
+  `
+  const uidRes = await db.query(getUID, [username])
+  return uidRes.rows[0].uid;
+}
+
 
 function generateRandomId(length) {
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
