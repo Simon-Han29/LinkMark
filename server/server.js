@@ -176,34 +176,23 @@ app.post("/api/links", authenticateToken, async (req, res) => {
 
 })
 
+app.delete("/api/links", authenticateToken, async (req, res) => {
   try {
     const linkId = req.body.linkId;
     const fid = req.body.fid;
-    const uid=req.body.uid
+    const uid = req.body.uid;
+
     const getFolderQuery = `
-      SELECT links from folders
-      WHERE fid=$1
-    `
-    let updatedFolder = await db.query(getFolderQuery, [fid])
-    updatedFolder = updatedFolder.rows[0].links
-    delete updatedFolder[linkId]
+      SELECT links FROM folders
+      WHERE fid = $1
+    `;
 
-    console.log("updated folder:")
-    console.log(updatedFolder)
-    const updateFolderQuery = `
-      UPDATE folders
-      SET links=$1
-      WHERE fid=$2
-    `
-
-    await db.query(updateFolderQuery, [updatedFolder, fid])
+    let result = await db.query(getFolderQuery, [fid]);
+    let updatedLinks = result.rows[0].links;
+    
     delete updatedLinks[linkId];
 
-    const userFolders = `
-      SELECT * FROM folders
-      WHERE uid=$1
-    `
-    console.log("uid:" + uid)
+    const linksJson = JSON.stringify(updatedLinks);
     await updateFolderLinks(fid, linksJson);
 
 
