@@ -26,6 +26,7 @@ const createUser = async () => {
       parentid VARCHAR(10),
       name VARCHAR(100) NOT NULL,
       links JSONB,
+      numlinks INT,
       FOREIGN KEY (uid) REFERENCES users(uid)
     );
   `;

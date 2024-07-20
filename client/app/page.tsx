@@ -8,7 +8,7 @@ import LandingPage from "@/components/LandingPage";
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
 export default function Home() {
-  const { folders, username, isAuthenticated, addLink, deleteLink, createFolder, numlinks, numfolders } = useAuth();
+  const { folders, username, isAuthenticated, addLink, deleteLink, createFolder, deleteFolder, numlinks, numfolders } = useAuth();
   const [newLink, setNewLink] = useState<string>("");
   const [newLinkName, setNewLinkName] = useState<string>("");
   const [isLinkMenuShowing, setIsLinkMenuShowing] = useState<boolean>(false);
@@ -56,11 +56,19 @@ export default function Home() {
     setNewFolderName(event.target.value.trim());
   };
 
-
-
   const handleCreateNewFolder = async() => {
     createFolder(newFolderName)
     setIsFolderMenuShowing(false)
+  }
+
+  const handleDeleteFolder = async(fid: string) => {
+    await deleteFolder(fid)
+    if (selectedFolderId === fid) {
+      selectedFolderId === ""
+      selectedFolder === ""
+      setDisplayedLinks({})
+    }
+    
   }
 
   return (
@@ -111,6 +119,7 @@ export default function Home() {
                   <div key={folder.fid} className={`flex mx-5 rounded-[10px] p-2 ${selectedFolderId===folder.fid ? "bg-neutral-700":""}`}>
                     <Image src="/folder.png" alt="" width={20} height={20} className="mr-2"/>
                     <p onClick={() => selectFolder(folder.name, folder.fid, folder.links)}>{folder.name}</p>
+                    <button onClick={()=>{handleDeleteFolder(folder.fid)}}>Delete</button>
                   </div>
                 ))}
               </div>

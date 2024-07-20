@@ -20,6 +20,7 @@ interface AuthContextType {
   deleteLink: (fid:string, linkId: string) => Object;
   initFolders: (folders: FolderType[]) => void;
   createFolder: (folderName:string) => void;
+  deleteFolder: (fid: string) => Object;
 }
 
 interface LinkType {
@@ -235,19 +236,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
     } catch (error) {
       console.error('Token decode error during login:', error);
-      setFolders([]);
-      setUsername('');
-      setUid('');
-      setIsAuthenticated(false);
+      resetSessionData()
     }
   };
 
   const logout = () => {
-    cookies.remove('token', { path: '/' });
-    setFolders([]);
-    setUsername('');
-    setUid('');
-    setIsAuthenticated(false);
+    resetSessionData();
   };
 
   const initFolders = (folders: FolderType[]) => {
@@ -284,8 +278,39 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }
 
+  const deleteFolder = async(fid:string) => {
+    try {
+      if (isAuthenticated) {
+        fetch(`${BASE_URL}/folders`, {
+          "method": "DELETE",
+          "headers": {
+            "authorization": cookies.get("token"),
+            "content-type": "application/json"
+          },
+          "body": JSON.stringify({
+            "fid": fid,
+            "uid": uid
+          })
+        })
+        .then((res) => {
+          if (res.status === 200) {
+            return res.json()
+          }
+        })
+        .then((data) => {
+          setFolders(data.folders)
+          setnumfolders(numfolders-1)
+          setnumlinks(numlinks-data.removedlinks)
+          return data.folders;
+        })
+      }
+    }catch(err) {
+
+    }
+  }
+
   return (
-    <AuthContext.Provider value={{ isAuthenticated, folders, username, uid, numlinks, numfolders, login, logout, addLink, deleteLink, initFolders, createFolder }}>
+    <AuthContext.Provider value={{ isAuthenticated, folders, username, uid, numlinks, numfolders, login, logout, addLink, deleteLink, initFolders, createFolder, deleteFolder}}>
       {children}
     </AuthContext.Provider>
   );

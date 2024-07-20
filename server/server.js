@@ -93,11 +93,11 @@ app.post("/api/signup", async(req, res) => {
         VALUES ($1, $2, $3)
       `
       const initDefaultFolder = `
-        INSERT INTO folders (fid, uid, parentid, name, links)
-        VALUES ($1, $2, $3, $4, $5)
+        INSERT INTO folders (fid, uid, parentid, name, links, numlinks)
+        VALUES ($1, $2, $3, $4, $5, $6)
       `
       await db.query(registerUserQuery, [uid, username, hashedPassword])
-      await db.query(initDefaultFolder, [defaultFid, uid, null, "Default", "{}"])
+      await db.query(initDefaultFolder, [defaultFid, uid, null, "Default", "{}", 0])
       
       res.status(201).json({msg:"User registered successfully and default folder created"}) 
     }
@@ -180,14 +180,20 @@ app.post("/api/links", authenticateToken, async (req, res) => {
       SELECT * FROM folders
       WHERE uid=$1
     `
-    const incLinkNumQuery = `
+    const incUserLinkNumQuery = `
       UPDATE users
       SET numlinks=numlinks+1
       WHERE uid=$1
     `
-
-    await db.query(incLinkNumQuery, [uid])
-    const userFoldersRes = await db.query(userFolders, [uid]) 
+    const incFolderLinkNumQuery = `
+      UPDATE folders
+      SET numlinks=numlinks+1
+      WHERE fid=$1
+    `
+    await db.query(incUserLinkNumQuery, [uid])
+    await db.query(incFolderLinkNumQuery, [fid])
+    const userFoldersRes = await db.query(userFolders, [uid])
+    console.log(userFoldersRes.rows) 
     res.status(201).json({"folders":userFoldersRes.rows});
   } catch(err) {
     console.log(err)
@@ -215,14 +221,18 @@ app.delete("/api/links", authenticateToken, async (req, res) => {
 
     const linksJson = JSON.stringify(updatedLinks);
     await updateFolderLinks(fid, linksJson);
-    const decLinkNumQuery = `
+    const decUserLinkNumQuery = `
       UPDATE users
       SET numlinks=numlinks-1
       WHERE uid=$1
     `
-
-    await db.query(decLinkNumQuery, [uid])
-
+    const decFolderLinkNumQuery = `
+      UPDATE folders
+      SET numlinks=numlinks-1
+      WHERE fid=$1
+    `
+    await db.query(decUserLinkNumQuery, [uid])
+    await db.query(decFolderLinkNumQuery, [fid])
     let folders = await getFoldersByUid(uid);
     res.status(200).json({ "folders": folders });
 
@@ -278,11 +288,11 @@ app.post("/api/folders", authenticateToken, async (req, res) => {
     }
 
     const createFolderQuery = `
-      INSERT INTO folders (fid, uid, parentid, name, links)
-      VALUES ($1, $2, $3, $4, $5)
+      INSERT INTO folders (fid, uid, parentid, name, links, numlinks)
+      VALUES ($1, $2, $3, $4, $5, $6)
     `
 
-    await db.query(createFolderQuery, [newFolderId, uid, null, folderName, "{}"])
+    await db.query(createFolderQuery, [newFolderId, uid, null, folderName, "{}", 0])
 
     const getUserFoldersQuery = `
       SELECT * FROM folders
@@ -301,6 +311,39 @@ app.post("/api/folders", authenticateToken, async (req, res) => {
 
   }catch(err) {
 
+  }
+})
+
+app.delete("/api/folders", authenticateToken, async(req, res) => {
+  try {
+    const {fid, uid} = req.body
+    const getLinkCountQuery = `
+      SELECT numlinks
+      FROM folders
+      WHERE fid=$1
+    `
+    const getLinkCountQueryRes = await db.query(getLinkCountQuery, [fid])
+
+    const linknum = getLinkCountQueryRes.rows[0].numlinks;
+    console.log(linknum)
+    const updateUserNumLinks = `
+      UPDATE users
+      SET numlinks=numlinks-$1
+      WHERE uid=$2
+    `
+    await db.query(updateUserNumLinks, [linknum, uid])
+
+    const deleteFolderQuery = `
+      DELETE FROM folders
+      WHERE fid=$1
+    `
+    await db.query(deleteFolderQuery, [fid])
+    
+    const folders = await getFoldersByUid(uid)
+    res.status(200).send({"folders":folders, "removedlinks":linknum})
+  } catch(err) {
+    console.log(err)
+    res.status(500).send();
   }
 })
 
