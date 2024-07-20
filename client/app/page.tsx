@@ -4,7 +4,7 @@ import { useAuth } from '@/context/AuthContext';
 import Navbar from '@/components/Navbar';
 import Image from 'next/image';
 import LinkBox from "@/components/LinkBox"
-
+import LandingPage from "@/components/LandingPage";
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
 export default function Home() {
@@ -194,7 +194,7 @@ export default function Home() {
         </div>
       ) : (
         <div>
-          <h1>Login to start saving links</h1>
+          <LandingPage/>
         </div>
       )}
     </div>

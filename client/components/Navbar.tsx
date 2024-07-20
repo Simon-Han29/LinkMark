@@ -21,7 +21,7 @@ const Navbar = () => {
       ):(
         <div className="flex justify-end items-center w-[20%]">
           <div>
-            <Link href="/signup" className="mr-10">SignUp</Link>
+            <Link href="/signup" className="mr-10">Sign up</Link>
           </div>
           <div>
             <Link href="/login" className="mr-10">Login</Link>
