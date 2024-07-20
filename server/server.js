@@ -288,6 +288,13 @@ app.post("/api/folders", authenticateToken, async (req, res) => {
       SELECT * FROM folders
       WHERE uid=$1
     `
+    const incFolderNumQuery = `
+      UPDATE users
+      SET numfolders=numfolders+1
+      WHERE uid=$1
+    `
+
+    await db.query(incFolderNumQuery, [uid])
     const folderRes = await db.query(getUserFoldersQuery, [uid])
     const folders = folderRes.rows;
     res.status(201).json({folders: folders})

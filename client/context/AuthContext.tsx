@@ -275,6 +275,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         })
         .then((data) => {
           setFolders(data.folders)
+          setnumfolders(numfolders+1)
           return data.folders;
         })
       }
