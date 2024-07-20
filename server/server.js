@@ -5,7 +5,6 @@ const cookieParser = require("cookie-parser");
 const jwt = require("jsonwebtoken");
 const db = require("./db")
 const bcrypt = require("bcrypt")
-// const jwtSecretKey = process.env.NEXT_PUBLIC_JWT_SECRET
 const jwtSecretKey = "milotic"
 const app = express();
 const PORT = 8082;
@@ -27,11 +26,31 @@ const authenticateToken = (req, res, next) => {
 
 
 app.get("/api/folders", authenticateToken, async(req, res) => {
-  const token = req.headers["authorization"]
-  const decoded = jwtDecode(token)
-  const uid = decoded.uid;
-  const folders = await getFoldersByUid(uid)
-  res.status(200).json(folders)
+  try {
+    const token = req.headers["authorization"]
+    const decoded = jwtDecode(token)
+    const uid = decoded.uid;
+    const folders = await getFoldersByUid(uid)
+    res.status(200).json(folders)
+  } catch(err) {
+    console.log(err)
+    res.status(500).send()
+  }
+
+})
+
+app.get("/api/userStats", authenticateToken, async(req, res) => {
+  try {
+    const token = req.headers["authorization"]
+    const decoded = jwtDecode(token)
+    const uid = decoded.uid;
+    const userStats = await getUserStats(uid)
+    console.log(userStats)
+    res.status(201).json(userStats)
+  } catch(err) {
+    console.log(err)
+    res.status(500)
+  }
 })
 
 app.post("/api/signup", async(req, res) => {
@@ -321,7 +340,19 @@ async function getUidFromUsername(username) {
   return uidRes.rows[0].uid;
 }
 
+async function getUserStats(uid) {
+  const getUserStatsQuery = `
+    SELECT numlinks, numfolders
+    FROM users
+    WHERE uid=$1
+  `
 
+  const queryRes = await db.query(getUserStatsQuery, [uid])
+  return {
+    "numlinks": queryRes.rows[0].numlinks,
+    "numfolders": queryRes.rows[0].numfolders
+  }
+}
 function generateRandomId(length) {
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   let result = '';

@@ -12,6 +12,8 @@ interface AuthContextType {
   folders: FolderType[];
   username: string;
   uid: string;
+  numlinks: number;
+  numfolders:number;
   login: (token: string) => void;
   logout: () => void;
   addLink: (link: string, linkName: string, fid: string) => Object;
@@ -39,6 +41,11 @@ interface JWTType {
   iat: string;
 }
 
+interface UserStats {
+  numlinks: number,
+  numfolders: number
+}
+
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 interface AuthProviderProps {
@@ -50,6 +57,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [folders, setFolders] = useState<FolderType[]>([]);
   const [username, setUsername] = useState<string>("");
   const [uid, setUid] = useState<string>("");
+  const [numlinks, setnumlinks] = useState<number>(0)
+  const [numfolders, setnumfolders] = useState<number>(1)
+
+  const resetSessionData = () => {
+    cookies.remove('token', { path: '/' });
+    setFolders([]);
+    setUsername('');
+    setUid('');
+    setnumlinks(0)
+    setnumfolders(1)
+    setIsAuthenticated(false);
+  }
 
   const fetchFolders = async (token: string) => {
     try {
@@ -72,6 +91,26 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  const fetchUserStats = async(token: string) => {
+    try {
+      const response = await fetch(`${BASE_URL}/userStats`, {
+        method: 'GET',
+        headers: {
+          'Authorization': token,
+          'Content-Type': 'application/json'
+        }
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch folders');
+      }
+
+      const data: UserStats = await response.json();
+      setnumlinks(data.numlinks)
+      setnumfolders(data.numfolders)
+    } catch(err) {
+
+    }
+  }
   useEffect(() => {
     const token = cookies.get('token');
     console.log('Token:', token);
@@ -87,27 +126,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           setUid(decoded.uid);
           setIsAuthenticated(true);
           fetchFolders(token);
+          fetchUserStats(token)
         } catch (error) {
           console.error('Token decode error:', error);
-          cookies.remove('token', { path: '/' });
-          setFolders([]);
-          setUsername('');
-          setUid('');
-          setIsAuthenticated(false);
+          resetSessionData()
         }
       } else {
         console.error('Invalid token format');
-        cookies.remove('token', { path: '/' });
-        setFolders([]);
-        setUsername('');
-        setUid('');
-        setIsAuthenticated(false);
+        resetSessionData()
       }
     } else {
-      setFolders([]);
-      setUsername('');
-      setIsAuthenticated(false);
-      setUid('');
+      resetSessionData()
     }
   }, []);
 
@@ -136,8 +165,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
         const data = await response.json();
         setFolders(data.folders);
-        console.log(data.folders);
-
+        setnumlinks(numlinks+1)
         let returned = {};
         for (let i = 0; i < data.folders.length; i++) {
           if (data.folders[i].fid === fid) {
@@ -174,7 +202,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
         const data = await response.json();
         setFolders(data.folders);
-        console.log(data.folders);
+        setnumlinks(numlinks-1)
 
         let returned = {};
         for (let i = 0; i < data.folders.length; i++) {
@@ -256,7 +284,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, folders, username, uid, login, logout, addLink, deleteLink, initFolders, createFolder }}>
+    <AuthContext.Provider value={{ isAuthenticated, folders, username, uid, numlinks, numfolders, login, logout, addLink, deleteLink, initFolders, createFolder }}>
       {children}
     </AuthContext.Provider>
   );

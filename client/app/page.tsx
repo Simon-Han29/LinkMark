@@ -8,7 +8,7 @@ import LinkBox from "@/components/LinkBox"
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
 export default function Home() {
-  const { folders, username, isAuthenticated, addLink, deleteLink, initFolders, createFolder } = useAuth();
+  const { folders, username, isAuthenticated, addLink, deleteLink, createFolder, numlinks, numfolders } = useAuth();
   const [newLink, setNewLink] = useState<string>("");
   const [newLinkName, setNewLinkName] = useState<string>("");
   const [isLinkMenuShowing, setIsLinkMenuShowing] = useState<boolean>(false);
@@ -17,6 +17,7 @@ export default function Home() {
   const [displayedLinks, setDisplayedLinks] = useState<Object>({});
   const [newFolderName, setNewFolderName] = useState<string>("");
   const [isFolderMenuShowing, setIsFolderMenuShowing] = useState<boolean>(false)
+  
 
   const handleNewLinkChange = (event: ChangeEvent<HTMLInputElement>) => {
     setNewLink(event.target.value.trim());
@@ -42,7 +43,6 @@ export default function Home() {
 
   const handleAddLink = async () => {
     let updatedFolder:Object = await addLink(newLink, newLinkName, selectedFolderId);
-    // Update displayedLinks after adding a new link
     setDisplayedLinks(updatedFolder)
     setIsLinkMenuShowing(false)
   };
@@ -77,6 +77,14 @@ export default function Home() {
             </div>
             <div className="bg-neutral-900 mx-5 h-[400px] p-10 rounded-[20px] mb-5">
               <h1 className="text-center">Dashboard</h1>
+              <div>
+                <h1>{numlinks}</h1>
+                <p>Num Links</p>
+              </div>
+              <div>
+                <h1>{numfolders}</h1>
+                <p>Num Folders</p>
+              </div>
             </div>
             <div className="flex">
               <div className="bg-neutral-900 ml-5 p-10 rounded-[20px] w-[30%]">
