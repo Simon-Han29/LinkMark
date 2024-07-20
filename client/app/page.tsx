@@ -77,13 +77,23 @@ export default function Home() {
             </div>
             <div className="bg-neutral-900 mx-5 h-[400px] p-10 rounded-[20px] mb-5">
               <h1 className="text-center">Dashboard</h1>
-              <div>
-                <h1>{numlinks}</h1>
-                <p>Num Links</p>
-              </div>
-              <div>
-                <h1>{numfolders}</h1>
-                <p>Num Folders</p>
+              <div className="flex justify-center items-center mt-20">
+                <div className="flex flex-col justify-center items-center mx-14">
+                  <Image src="/chain.png" alt="" width={75} height={75} className="mb-5"/>
+                  {numlinks == 1 ? (
+                    <h1>{`${numlinks} Link Saved`}</h1>
+                  ): (
+                    <h1>{`${numlinks} Links Saved`}</h1>
+                  )}
+                </div>
+                <div className="flex flex-col justify-center items-center mx-14">
+                  <Image src="/folder.png" alt="" width={75} height={75} className="mb-5"/>
+                  {numfolders == 1 ? (
+                    <h1>{`${numfolders} Folder Created`}</h1>
+                  ): (
+                    <h1>{`${numfolders} Folders Created`}</h1>
+                  )}
+                </div>
               </div>
             </div>
             <div className="flex">
