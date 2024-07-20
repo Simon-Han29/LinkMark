@@ -44,6 +44,7 @@ export default function Home() {
     let updatedFolder:Object = await addLink(newLink, newLinkName, selectedFolderId);
     // Update displayedLinks after adding a new link
     setDisplayedLinks(updatedFolder)
+    setIsLinkMenuShowing(false)
   };
 
   const handleDeleteLink = async (linkId:string) => {
@@ -59,6 +60,7 @@ export default function Home() {
 
   const handleCreateNewFolder = async() => {
     createFolder(newFolderName)
+    setIsFolderMenuShowing(false)
   }
 
   return (
@@ -124,7 +126,11 @@ export default function Home() {
             </div>
           </div>
           {isLinkMenuShowing ? (
-            <div className="bg-neutral-800 absolute left-[50%] top-[50%] h-[300px] w-[500px] translate-x-[-50%] translate-y-[-50%] flex justify-center items-center">
+            <div className="bg-neutral-800 absolute left-[50%] top-[50%] h-[300px] w-[500px] translate-x-[-50%] translate-y-[-50%] flex justify-center items-center flex flex-col">
+              <div className="flex justify-end w-full pr-10">
+                <button onClick={()=>setIsLinkMenuShowing(false)}>Close</button>
+              </div>
+              <h1>Add Link</h1>
               <div className="flex flex-col h-56 w-96 justify-center items-center">
                 <input
                   type="text"
@@ -147,7 +153,11 @@ export default function Home() {
             <></>
           )}
           {isFolderMenuShowing ? (
-            <div className="bg-neutral-800 absolute left-[50%] top-[50%] h-[300px] w-[500px] translate-x-[-50%] translate-y-[-50%] flex justify-center items-center">
+            <div className="bg-neutral-800 absolute left-[50%] top-[50%] h-[300px] w-[500px] translate-x-[-50%] translate-y-[-50%] flex justify-center items-center flex-col">
+              <div className="flex justify-end w-full pr-10">
+                <button onClick={()=>setIsFolderMenuShowing(false)}>close</button>
+              </div>
+              <h1>Create New Folder</h1>
               <div className="flex flex-col h-56 w-96 justify-center items-center">
                 <input
                   type="text"
