@@ -13,7 +13,9 @@ const createUser = async () => {
     CREATE TABLE IF NOT EXISTS users (
       uid VARCHAR(10) NOT NULL PRIMARY KEY,
       username VARCHAR(100) NOT NULL,
-      password VARCHAR(100) NOT NULL
+      password VARCHAR(100) NOT NULL,
+      numlinks INT DEFAULT 0,
+      numfolders INT DEFAULT 1
     );
   `;
 

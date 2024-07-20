@@ -141,7 +141,6 @@ app.post("/api/links", authenticateToken, async (req, res) => {
       SELECT links from folders
       WHERE fid=$1
     `
-
     const getFolderRes = await db.query(getFolderQuery, [fid])
     let updatedLinks = getFolderRes.rows[0].links
 
@@ -162,11 +161,14 @@ app.post("/api/links", authenticateToken, async (req, res) => {
       SELECT * FROM folders
       WHERE uid=$1
     `
-    console.log("uid:" + uid)
+    const incLinkNumQuery = `
+      UPDATE users
+      SET numlinks=numlinks+1
+      WHERE uid=$1
+    `
 
-    const userFoldersRes = await db.query(userFolders, [uid])
-    console.log("The folder that will be returned: ")
-    console.log(userFoldersRes.rows)    
+    await db.query(incLinkNumQuery, [uid])
+    const userFoldersRes = await db.query(userFolders, [uid]) 
     res.status(201).json({"folders":userFoldersRes.rows});
   } catch(err) {
     console.log(err)
@@ -194,7 +196,13 @@ app.delete("/api/links", authenticateToken, async (req, res) => {
 
     const linksJson = JSON.stringify(updatedLinks);
     await updateFolderLinks(fid, linksJson);
+    const decLinkNumQuery = `
+      UPDATE users
+      SET numlinks=numlinks-1
+      WHERE uid=$1
+    `
 
+    await db.query(decLinkNumQuery, [uid])
 
     let folders = await getFoldersByUid(uid);
     res.status(200).json({ "folders": folders });
