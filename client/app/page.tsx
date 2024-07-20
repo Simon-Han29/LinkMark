@@ -117,9 +117,16 @@ export default function Home() {
                 
                 {folders.map((folder) => (
                   <div key={folder.fid} className={`flex mx-5 rounded-[10px] p-2 ${selectedFolderId===folder.fid ? "bg-neutral-700":""}`}>
-                    <Image src="/folder.png" alt="" width={20} height={20} className="mr-2"/>
-                    <p onClick={() => selectFolder(folder.name, folder.fid, folder.links)}>{folder.name}</p>
-                    <button onClick={()=>{handleDeleteFolder(folder.fid)}}>Delete</button>
+                    <div className="flex w-[80%]" onClick={() => selectFolder(folder.name, folder.fid, folder.links)}>
+                      <Image src="/folder.png" alt="" width={20} height={20} className="mr-2"/>
+                      <div>
+                        <p>{folder.name}</p>
+                      </div>
+                    </div>
+                    <div className="w-[20%]">
+                      <button onClick={()=>{handleDeleteFolder(folder.fid)}}>Delete</button>
+                    </div>
+                    
                   </div>
                 ))}
               </div>
